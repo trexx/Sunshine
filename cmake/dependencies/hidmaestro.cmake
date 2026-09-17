@@ -16,7 +16,9 @@ if(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64|x86_64")
     return()
 endif()
 
-find_program(DOTNET_EXECUTABLE dotnet)
+# The MSYS2 shell used on Windows does not inherit the Windows PATH, so look in the usual
+# install location and wherever actions/setup-dotnet points DOTNET_ROOT.
+find_program(DOTNET_EXECUTABLE dotnet HINTS "$ENV{DOTNET_ROOT}" "C:/Program Files/dotnet" "$ENV{ProgramFiles}/dotnet")
 if(NOT DOTNET_EXECUTABLE)
     message(WARNING "HIDMaestro broker disabled: the .NET SDK (dotnet) was not found. Install the .NET 10 SDK or configure with -DSUNSHINE_ENABLE_HIDMAESTRO=OFF.")
     set(SUNSHINE_ENABLE_HIDMAESTRO OFF CACHE BOOL "" FORCE)

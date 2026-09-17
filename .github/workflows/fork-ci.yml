@@ -1,0 +1,94 @@
+---
+# Build workflow for forks.
+#
+# The upstream CI (ci.yml) is wired to LizardByte's release tooling, reusable workflows and
+# organization secrets, so it is guarded to run only in the LizardByte organization. This
+# workflow reuses the platform build workflows directly, needs no secrets, and uploads the
+# resulting installers/archives as workflow artifacts. It runs on every branch push, on pull
+# requests, and on demand.
+name: Fork CI
+permissions: {}
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      build_linux:
+        description: Also build the Linux AppImages and run the Linux test suite
+        type: boolean
+        default: false
+      build_arm64:
+        description: Build Windows-ARM64 too (requires a windows-11-arm runner; free only for public repositories)
+        type: boolean
+        default: false
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    name: Setup
+    # Upstream runs its own CI; forks (any other owner) use this one.
+    if: github.repository_owner != 'LizardByte'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      build_arm64: ${{ steps.arm64.outputs.build_arm64 }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Compute version
+        id: version
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          # Sunshine uses calendar versions (YYYY.MDD.HHMM); derive one from the commit time so
+          # cmake/prep/build_version.cmake recognizes it and CPack gets numeric components.
+          version="$(TZ=UTC git show -s --date=format-local:'%Y.%-m%d.%-H%M' --format=%cd "${SHA}")"
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "Build version: ${version}"
+
+      - name: Decide on Windows-ARM64
+        id: arm64
+        env:
+          # Public repositories get windows-11-arm runners for free; private ones do not.
+          REPO_PRIVATE: ${{ github.event.repository.private }}
+          DISPATCH_ARM64: ${{ github.event_name == 'workflow_dispatch' && inputs.build_arm64 }}
+        run: |
+          if [[ "${DISPATCH_ARM64}" == "true" || ( "${GITHUB_EVENT_NAME}" != "workflow_dispatch" && "${REPO_PRIVATE}" != "true" ) ]]; then
+            echo "build_arm64=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "build_arm64=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+  windows:
+    name: Windows
+    needs: setup
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci-windows.yml
+    with:
+      build_arm64: ${{ needs.setup.outputs.build_arm64 == 'true' }}
+      publish_release: 'false'
+      release_commit: ${{ github.sha }}
+      release_version: ${{ needs.setup.outputs.version }}
+
+  linux:
+    name: Linux
+    needs: setup
+    if: github.event_name == 'workflow_dispatch' && inputs.build_linux
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci-linux.yml
+    with:
+      release_commit: ${{ github.sha }}
+      release_version: ${{ needs.setup.outputs.version }}

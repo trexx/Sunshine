@@ -15,6 +15,7 @@ on:
 jobs:
   localize:
     name: Update Localization
+    if: github.repository_owner == 'LizardByte'  # pushes translations with LizardByte bot credentials
     permissions:
       contents: read
     uses: LizardByte/lizardbyte-common/.github/workflows/localize.yml@master

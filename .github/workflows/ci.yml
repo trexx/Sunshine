@@ -13,15 +13,20 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
 
+# Forks: this workflow depends on LizardByte's release tooling and organization secrets, so
+# every root job is guarded to the LizardByte organization; dependent jobs are skipped with
+# them. Forks build with fork-ci.yml instead.
 jobs:
   github-env:
     name: GitHub Env Debug
+    if: github.repository_owner == 'LizardByte'
     permissions:
       contents: read
     uses: LizardByte/.github/.github/workflows/__call-github-env.yml@master
 
   release-setup:
     name: Release Setup
+    if: github.repository_owner == 'LizardByte'
     outputs:
       publish_release: ${{ steps.release-setup.outputs.publish_release }}
       release_body: ${{ steps.release-setup.outputs.release_body }}
@@ -182,6 +187,7 @@ jobs:
 
   test-powershell:
     name: PowerShell
+    if: github.repository_owner == 'LizardByte'
     permissions:
       contents: read
     uses: ./.github/workflows/ci-powershell.yml

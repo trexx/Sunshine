@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
   prep:
+    if: github.repository_owner == 'LizardByte'  # publishes to LizardByte.github.io
     runs-on: ubuntu-latest
     permissions:
       contents: read

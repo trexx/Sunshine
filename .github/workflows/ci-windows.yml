@@ -21,6 +21,12 @@ on:
         required: false
         type: string
         default: ''
+      # Build the Windows-ARM64 matrix entry (needs a windows-11-arm runner, which private
+      # repositories do not get for free)
+      build_arm64:
+        required: false
+        type: boolean
+        default: true
       publish_release:
         required: true
         type: string
@@ -67,6 +73,8 @@ jobs:
             arch: aarch64
             msystem: clangarm64
             toolchain: clang-aarch64
+        exclude:
+          - name: ${{ inputs.build_arm64 && 'none' || 'Windows-ARM64' }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
