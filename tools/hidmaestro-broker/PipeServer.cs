@@ -15,6 +15,7 @@ internal sealed class PipeServer
     private readonly string _pipeName;
     private readonly ControllerHost _host;
     private readonly CancellationTokenSource _shutdown;
+    private bool _shutdownRequested;
 
     public PipeServer(string pipeName, ControllerHost host, CancellationTokenSource shutdown)
     {
@@ -73,10 +74,15 @@ internal sealed class PipeServer
                     if (length <= 0)
                         continue;
 
-                    int responseLength = Dispatch(request.AsSpan(0, length), response);
+                    int responseLength = Dispatch(request, length, response);
                     await pipe.WriteAsync(response.AsMemory(0, responseLength), token).ConfigureAwait(false);
                     await pipe.FlushAsync(token).ConfigureAwait(false);
                     pipe.WaitForPipeDrain();
+                    if (_shutdownRequested)
+                    {
+                        // Answer first so Sunshine sees the acknowledgement, then leave the loop
+                        _shutdown.Cancel();
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -109,6 +115,10 @@ internal sealed class PipeServer
         } while (!pipe.IsMessageComplete);
         return total;
     }
+
+    // Spans cannot live in async methods; this synchronous wrapper slices the buffer.
+    private int Dispatch(byte[] requestBuffer, int length, byte[] response)
+        => Dispatch(new ReadOnlySpan<byte>(requestBuffer, 0, length), response);
 
     private int Dispatch(ReadOnlySpan<byte> request, byte[] response)
     {
@@ -176,7 +186,7 @@ internal sealed class PipeServer
 
             case Protocol.RequestType.Shutdown when request.Length == Protocol.ShutdownRequestSize:
                 Log.Info("Shutdown requested");
-                _shutdown.Cancel();
+                _shutdownRequested = true;
                 return WriteSimple(response, Protocol.Status.Ok);
 
             default:

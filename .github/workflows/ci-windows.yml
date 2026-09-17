@@ -286,6 +286,7 @@ jobs:
             ${{ github.workspace }}/build/tools/audio-info.exe
             ${{ github.workspace }}/build/tools/dxgi-info.exe
             ${{ github.workspace }}/build/tools/sunshinesvc.exe
+            ${{ github.workspace }}/build/tools/sunshine-hidmaestro-broker.exe
           files-folder: src_assets/windows
           files-folder-filter: ps1
           files-folder-recurse: true

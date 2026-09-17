@@ -41,9 +41,10 @@ internal static class PackingPlanBuilder
             }
         }
 
+        var mode = FixedModes.TryGetValue(profile.Id, out var fixedMode) ? fixedMode : Protocol.PackMode.HidGeneric;
         var plan = new Protocol.PackingPlan
         {
-            Mode = FixedModes.TryGetValue(profile.Id, out var fixedMode) ? fixedMode : Protocol.PackMode.HidGeneric,
+            Mode = mode,
             ReportId = builder.InputReportId,
             DataSize = (ushort)((builder.InputReportBitSize + 7) / 8),
             PacksGip = RequiresXusbCompanion(profile),

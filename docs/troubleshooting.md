@@ -332,11 +332,18 @@ launchctl load -w /Library/LaunchAgents/org.freedesktop.dbus-session.plist
 ## Windows
 
 ### No gamepad detected
-Sunshine supports two virtual gamepad backends on Windows. You can install the
+Sunshine supports three virtual gamepad backends on Windows. You can install the
 [Virtual HID Driver](https://github.com/LizardByte/libvirtualhid/releases/latest) separately as an optional paid upgrade
-for a driver-backed Raw Input keyboard and mouse plus full virtual gamepad support. ViGEmBus is a limited alternative
-for Xbox 360 and DualShock 4 support that has reached end of life. If you use the
+for a driver-backed Raw Input keyboard and mouse plus full virtual gamepad support. 64-bit builds also bundle
+[HIDMaestro](https://github.com/hifihedgehog/HIDMaestro), a free user-mode virtual controller driver that supports every
+gamepad type Sunshine offers; it is installed automatically the first time a controller connects, but only when Sunshine
+runs as the Sunshine service or with administrator rights. ViGEmBus is a limited alternative for Xbox 360 and DualShock 4
+support that has reached end of life. If you use the
 [ViGEmBus fallback](https://github.com/nefarius/ViGEmBus/releases/latest), you must use version 1.17 or newer.
+
+If HIDMaestro is selected but reported as unavailable, check that `tools\sunshine-hidmaestro-broker.exe` exists next to
+`sunshine.exe` and that Sunshine is elevated. The broker writes its own log lines (prefixed `hidmaestro-broker`) into the
+Sunshine log.
 
 When Virtual HID Driver is used, Sunshine requires version `2026.914.1218.10` or newer.
 
@@ -347,12 +354,13 @@ ViGEmBus project, Virtual HID Driver is actively developed and supported by the 
 An active paid Virtual HID Driver machine license is required before Sunshine can create driver-backed libvirtualhid
 devices, including gamepads and the Raw Input keyboard and mouse. Use the message on the Web UI home page, the startup
 tray notification, or **Get/Manage License** in the **Virtual HID Driver** tray submenu to open the license section on
-the Troubleshooting page. In **Configuration > Input**, select **All Available Drivers**, only **Virtual HID Driver**, or
-only **ViGEmBus**. Sunshine keeps prompting until this setting is saved, but automatically selects **All Available
-Drivers** when it detects an existing active Virtual HID Driver license. Whenever the Virtual HID Driver license is not
-valid, **All Available Drivers** falls back to a compatible ViGEmBus installation for Xbox 360 and DualShock 4 gamepads
-and to SendInput for keyboard and mouse. Selecting only **ViGEmBus** suppresses Virtual HID Driver startup notifications
-and hides its status and license details from the Troubleshooting page.
+the Troubleshooting page. In **Configuration > Input**, select **All Available Drivers**, only **Virtual HID Driver**,
+only **HIDMaestro**, or only **ViGEmBus**. Sunshine keeps prompting until this setting is saved, but automatically
+selects **All Available Drivers** when it detects an existing active Virtual HID Driver license. Whenever the Virtual HID
+Driver license is not valid, **All Available Drivers** falls back to HIDMaestro when it is usable, then to a compatible
+ViGEmBus installation for Xbox 360 and DualShock 4 gamepads, and to SendInput for keyboard and mouse. Selecting only
+**HIDMaestro** or only **ViGEmBus** suppresses Virtual HID Driver startup notifications and hides its status and license
+details from the Troubleshooting page.
 
 After installation, it is recommended to restart your computer.
 

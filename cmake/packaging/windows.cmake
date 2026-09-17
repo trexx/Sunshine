@@ -16,9 +16,14 @@ install(TARGETS audio-info RUNTIME DESTINATION "tools" COMPONENT audio)
 # Mandatory tools
 install(TARGETS sunshinesvc RUNTIME DESTINATION "tools" COMPONENT application)
 
-# HIDMaestro broker (optional; see cmake/dependencies/hidmaestro.cmake)
+# HIDMaestro broker (optional; see cmake/dependencies/hidmaestro.cmake). The build-tree copy under
+# tools/ is what CI signs, so that copy is the one packaged.
 if(SUNSHINE_ENABLE_HIDMAESTRO AND HIDMAESTRO_BROKER_EXE)
-    install(PROGRAMS "${HIDMAESTRO_BROKER_EXE}" DESTINATION "tools" COMPONENT application)
+    install(PROGRAMS "${CMAKE_BINARY_DIR}/tools/sunshine-hidmaestro-broker.exe" DESTINATION "tools" COMPONENT application)
+    install(FILES "${CMAKE_SOURCE_DIR}/tools/hidmaestro-broker/THIRD-PARTY-NOTICES.txt"
+            DESTINATION "tools"
+            RENAME "sunshine-hidmaestro-broker-THIRD-PARTY-NOTICES.txt"
+            COMPONENT application)
 endif()
 
 # Mandatory scripts

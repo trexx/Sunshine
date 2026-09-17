@@ -236,6 +236,7 @@ TEST_F(VirtualHidDeviceTest, SelectsVirtualHidGamepadRuntimeByBackendLicenseAndP
   EXPECT_TRUE(platf::virtualhid::should_use_gamepad_runtime(capabilities, config::GAMEPAD_DRIVER_ALL, true));
   EXPECT_TRUE(platf::virtualhid::should_use_gamepad_runtime(capabilities, config::GAMEPAD_DRIVER_VIRTUALHID, true));
   EXPECT_FALSE(platf::virtualhid::should_use_gamepad_runtime(capabilities, config::GAMEPAD_DRIVER_VIGEMBUS, true));
+  EXPECT_FALSE(platf::virtualhid::should_use_gamepad_runtime(capabilities, config::GAMEPAD_DRIVER_HIDMAESTRO, true));
 
   capabilities.supports_gamepad = false;
   EXPECT_FALSE(platf::virtualhid::should_use_gamepad_runtime(capabilities, config::GAMEPAD_DRIVER_ALL, true));
@@ -251,6 +252,8 @@ TEST_F(VirtualHidDeviceTest, SelectsVigembusFallbackByBackendAndConfiguredProfil
   EXPECT_TRUE(platf::virtualhid::should_try_vigembus_fallback("xseries", false, ""));
   EXPECT_TRUE(platf::virtualhid::should_try_vigembus_fallback("xseries", true, config::GAMEPAD_DRIVER_VIGEMBUS));
   EXPECT_FALSE(platf::virtualhid::should_try_vigembus_fallback("auto", false, config::GAMEPAD_DRIVER_VIRTUALHID));
+  EXPECT_FALSE(platf::virtualhid::should_try_vigembus_fallback("auto", false, config::GAMEPAD_DRIVER_HIDMAESTRO));
+  EXPECT_FALSE(platf::virtualhid::should_try_vigembus_fallback("x360", true, config::GAMEPAD_DRIVER_HIDMAESTRO));
 }
 
 TEST_F(VirtualHidDeviceTest, ReportsStaticAndRuntimeGamepadChoices) {

@@ -1644,6 +1644,21 @@ TEST(ConfigHttpDriverStatusTest, BuildsLiveVirtualInputDriverStatus) {
   EXPECT_TRUE(vigembus.contains("version"));
   EXPECT_TRUE(vigembus.contains("minimum_version"));
   EXPECT_TRUE(vigembus.contains("version_compatible"));
+
+  const auto hidmaestro = confighttp::get_hidmaestro_driver_status();
+  EXPECT_TRUE(hidmaestro.contains("installed"));
+  EXPECT_TRUE(hidmaestro.contains("version"));
+  EXPECT_TRUE(hidmaestro.contains("version_compatible"));
+  EXPECT_TRUE(hidmaestro.contains("broker_available"));
+  EXPECT_TRUE(hidmaestro.contains("broker_version"));
+  EXPECT_TRUE(hidmaestro.contains("bundled_version"));
+  EXPECT_TRUE(hidmaestro.contains("supported"));
+  EXPECT_TRUE(hidmaestro.contains("reason"));
+  EXPECT_EQ(hidmaestro["supported_versions"].get<std::string>(), "Any");
+#ifndef _WIN32
+  EXPECT_FALSE(hidmaestro["supported"].get<bool>());
+  EXPECT_FALSE(hidmaestro["broker_available"].get<bool>());
+#endif
 }
 
 TEST(ConfigHttpLicenseStatusTest, ClearsSensitiveRequestString) {
@@ -1661,8 +1676,11 @@ TEST_F(ConfigHttpTest, VirtualInputStatusReturnsBothBackends) {
   const auto body = nlohmann::json::parse(response->content.string());
   ASSERT_TRUE(body.contains("virtualhid"));
   ASSERT_TRUE(body.contains("vigembus"));
+  ASSERT_TRUE(body.contains("hidmaestro"));
   EXPECT_TRUE(body.at("virtualhid").contains("installed"));
   EXPECT_TRUE(body.at("vigembus").contains("installed"));
+  EXPECT_TRUE(body.at("hidmaestro").contains("installed"));
+  EXPECT_TRUE(body.at("hidmaestro").contains("supported"));
 }
 
 TEST_F(ConfigHttpTest, VirtualInputLicenseReturnsCurrentStatus) {

@@ -224,6 +224,10 @@ available through the normal toolchain prefix.
 
 To create a WiX installer, you also need to install [.NET](https://dotnet.microsoft.com/download).
 
+The HIDMaestro gamepad broker (`tools/sunshine-hidmaestro-broker.exe`) is built on AMD64 by default and also needs
+the .NET 10 SDK on the `PATH`; CMake downloads the pinned HIDMaestro release archive (about 120 MB) during
+configuration. Configure with `-DSUNSHINE_ENABLE_HIDMAESTRO=OFF` to skip it.
+
 To build the frontend, install native [Node.js](https://nodejs.org/en/download) for the target architecture. The
 MSYS2 Node.js package is not supported because its shared runtime cannot load the native binding required by Rolldown.
 
