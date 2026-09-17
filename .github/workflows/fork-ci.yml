@@ -23,7 +23,7 @@ on:
         type: boolean
         default: false
       build_arm64:
-        description: Build Windows-ARM64 too (requires a windows-11-arm runner; free only for public repositories)
+        description: Also build Windows-ARM64 (needs a windows-11-arm runner; off by default to save runner time)
         type: boolean
         default: false
 
@@ -60,11 +60,10 @@ jobs:
       - name: Decide on Windows-ARM64
         id: arm64
         env:
-          # Public repositories get windows-11-arm runners for free; private ones do not.
-          REPO_PRIVATE: ${{ github.event.repository.private }}
+          # ARM64 is opt-in: only a manual dispatch with build_arm64 checked builds it.
           DISPATCH_ARM64: ${{ github.event_name == 'workflow_dispatch' && inputs.build_arm64 }}
         run: |
-          if [[ "${DISPATCH_ARM64}" == "true" || ( "${GITHUB_EVENT_NAME}" != "workflow_dispatch" && "${REPO_PRIVATE}" != "true" ) ]]; then
+          if [[ "${DISPATCH_ARM64}" == "true" ]]; then
             echo "build_arm64=true" >> "${GITHUB_OUTPUT}"
           else
             echo "build_arm64=false" >> "${GITHUB_OUTPUT}"
