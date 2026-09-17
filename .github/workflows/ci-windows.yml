@@ -62,24 +62,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # `name` is a real matrix key so `exclude` can drop the ARM64 entry; `include` extends
-        # each name with its runner and toolchain.
-        name:
-          - Windows-AMD64
-          - Windows-ARM64
-        include:
-          - name: Windows-AMD64
-            os: windows-2022
-            arch: x86_64
-            msystem: ucrt64
-            toolchain: ucrt-x86_64
-          - name: Windows-ARM64
-            os: windows-11-arm
-            arch: aarch64
-            msystem: clangarm64
-            toolchain: clang-aarch64
-        exclude:
-          - name: ${{ inputs.build_arm64 && 'none' || 'Windows-ARM64' }}
+        # `exclude` cannot drop an entry that `include` re-adds afterwards, so the include list
+        # itself is selected by the build_arm64 input.
+        include: >-
+          ${{ fromJSON(inputs.build_arm64
+          && '[{"name":"Windows-AMD64","os":"windows-2022","arch":"x86_64","msystem":"ucrt64","toolchain":"ucrt-x86_64"},{"name":"Windows-ARM64","os":"windows-11-arm","arch":"aarch64","msystem":"clangarm64","toolchain":"clang-aarch64"}]'
+          || '[{"name":"Windows-AMD64","os":"windows-2022","arch":"x86_64","msystem":"ucrt64","toolchain":"ucrt-x86_64"}]') }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
