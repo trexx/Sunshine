@@ -127,6 +127,30 @@
                     </a>
                   </td>
                 </tr>
+                <tr id="hidmaestro" v-if="showHidmaestro">
+                  <th scope="row">{{ $t('troubleshooting.hidmaestro_driver') }}</th>
+                  <td>{{ hidmaestro.installed ? (hidmaestro.version || $t('troubleshooting.driver_version_unknown')) : $t('troubleshooting.driver_not_installed') }}</td>
+                  <td>
+                    <div class="driver-release-state driver-release-neutral">
+                      <span>{{ $t('troubleshooting.hidmaestro_bundled', { version: hidmaestro.bundled_version || '?' }) }}</span>
+                    </div>
+                  </td>
+                  <td>{{ hidmaestro.supported_versions }}</td>
+                  <td>
+                    <span :class="hidmaestroStatusClass">
+                      {{ hidmaestroStatusText }}
+                    </span>
+                  </td>
+                  <td class="driver-download-column">
+                    <a class="btn btn-outline-primary driver-download-button"
+                       href="https://github.com/hifihedgehog/HIDMaestro"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                      <download :size="17"></download>
+                      {{ $t('troubleshooting.driver_project_page') }}
+                    </a>
+                  </td>
+                </tr>
                 <tr id="vigembus" v-if="showVigembus">
                   <th scope="row">{{ $t('troubleshooting.vigembus_driver') }}</th>
                   <td>{{ driverVersion(vigembus) }}</td>
@@ -549,6 +573,18 @@
             minimum_version: '',
             supported_versions: '',
           },
+          hidmaestro: {
+            installed: false,
+            version: '',
+            version_compatible: false,
+            minimum_version: '',
+            supported_versions: '',
+            broker_available: false,
+            broker_version: '',
+            bundled_version: '',
+            supported: false,
+            reason: '',
+          },
           currentLogIndex: -1,
           logLines: [],
         };
@@ -559,7 +595,30 @@
         },
 
         showVigembus() {
-          return this.gamepadDriver !== 'virtualhid';
+          return this.gamepadDriver !== 'virtualhid' && this.gamepadDriver !== 'hidmaestro';
+        },
+
+        showHidmaestro() {
+          return this.gamepadDriver !== 'virtualhid' && this.gamepadDriver !== 'vigembus';
+        },
+
+        hidmaestroStatusClass() {
+          if (!this.hidmaestro.supported || !this.hidmaestro.broker_available) {
+            return 'badge text-bg-warning';
+          }
+          return this.hidmaestro.installed ? 'badge text-bg-success' : 'badge text-bg-secondary';
+        },
+
+        hidmaestroStatusText() {
+          if (!this.hidmaestro.broker_available) {
+            return this.$t('troubleshooting.hidmaestro_broker_missing');
+          }
+          if (!this.hidmaestro.supported) {
+            return this.$t('troubleshooting.hidmaestro_requires_elevation');
+          }
+          return this.hidmaestro.installed ?
+            this.$t('troubleshooting.driver_status_compatible') :
+            this.$t('troubleshooting.hidmaestro_installs_on_first_use');
         },
 
         showVirtualhidBenefits() {
@@ -572,6 +631,9 @@
           }
           if (this.gamepadDriver === 'vigembus') {
             return 'troubleshooting.virtual_gamepad_vigembus_desc';
+          }
+          if (this.gamepadDriver === 'hidmaestro') {
+            return 'troubleshooting.virtual_gamepad_hidmaestro_desc';
           }
           if (this.virtualhid.installed && this.virtualhidLicense.licensed) {
             return this.gamepadDriver === 'all' ?
@@ -955,6 +1017,7 @@
             .then((r) => {
               const virtualhid = r.virtualhid || {};
               const vigembus = r.vigembus || {};
+              const hidmaestro = r.hidmaestro || {};
               this.virtualhid = {
                 installed: virtualhid.installed || false,
                 version: virtualhid.version || '',
@@ -968,6 +1031,18 @@
                 version_compatible: vigembus.version_compatible || false,
                 minimum_version: vigembus.minimum_version || '',
                 supported_versions: vigembus.supported_versions || '',
+              };
+              this.hidmaestro = {
+                installed: hidmaestro.installed || false,
+                version: hidmaestro.version || '',
+                version_compatible: hidmaestro.version_compatible || false,
+                minimum_version: hidmaestro.minimum_version || '',
+                supported_versions: hidmaestro.supported_versions || '',
+                broker_available: hidmaestro.broker_available || false,
+                broker_version: hidmaestro.broker_version || '',
+                bundled_version: hidmaestro.bundled_version || '',
+                supported: hidmaestro.supported || false,
+                reason: hidmaestro.reason || '',
               };
             })
             .catch((err) => {

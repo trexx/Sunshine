@@ -16,6 +16,11 @@ install(TARGETS audio-info RUNTIME DESTINATION "tools" COMPONENT audio)
 # Mandatory tools
 install(TARGETS sunshinesvc RUNTIME DESTINATION "tools" COMPONENT application)
 
+# HIDMaestro broker (optional; see cmake/dependencies/hidmaestro.cmake)
+if(SUNSHINE_ENABLE_HIDMAESTRO AND HIDMAESTRO_BROKER_EXE)
+    install(PROGRAMS "${HIDMAESTRO_BROKER_EXE}" DESTINATION "tools" COMPONENT application)
+endif()
+
 # Mandatory scripts
 install(FILES
         "${SUNSHINE_SOURCE_ASSETS_DIR}/windows/misc/sunshine-setup.ps1"

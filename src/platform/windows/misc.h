@@ -6,9 +6,11 @@
 
 // standard includes
 #include <chrono>
+#include <cstdio>
 #include <filesystem>
 #include <string>
 #include <string_view>
+#include <system_error>
 
 // platform includes
 #include <Windows.h>
@@ -52,4 +54,38 @@ namespace platf {
    * @return true if version info was successfully extracted, false otherwise.
    */
   bool getFileVersionInfo(const std::filesystem::path &file_path, std::string &version_str);
+
+  /**
+   * @brief Check whether the current process runs as the LocalSystem account.
+   *
+   * @return `true` if the current process has system-level privileges, `false` otherwise.
+   */
+  bool is_running_as_system();
+
+  /**
+   * @brief Check whether a token belongs to the local Administrators group.
+   *
+   * @param user_token Windows access token to inspect.
+   * @return True when the inspected token has administrator privileges.
+   */
+  bool IsUserAdmin(HANDLE user_token);
+
+  /**
+   * @brief Build an extended startup info block for a child process.
+   *
+   * The returned attribute list must be released with `free_proc_thread_attr_list`.
+   *
+   * @param file Optional log file whose handle becomes the child's stdout/stderr.
+   * @param job Optional job object the child is atomically inserted into.
+   * @param ec Set on allocation failure.
+   * @return A structure that contains information about how to launch the new process.
+   */
+  STARTUPINFOEXW create_startup_info(FILE *file, HANDLE *job, std::error_code &ec);
+
+  /**
+   * @brief Release an attribute list allocated by `create_startup_info`.
+   *
+   * @param list Attribute list to release.
+   */
+  void free_proc_thread_attr_list(LPPROC_THREAD_ATTRIBUTE_LIST list);
 }  // namespace platf

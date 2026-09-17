@@ -29,6 +29,7 @@
 
 #ifdef _WIN32
   #include "platform/virtualhid_input.h"
+  #include "platform/windows/hidmaestro/input.h"
   #include "platform/windows/misc.h"
   #include "platform/windows/utf_utils.h"
 
@@ -2028,6 +2029,48 @@ namespace confighttp {
     return output_tree;
   }
 
+  nlohmann::json get_hidmaestro_driver_status() {
+#ifdef HIDMAESTRO_VERSION
+    const std::string bundled_version = HIDMAESTRO_VERSION;
+#else
+    const std::string bundled_version;
+#endif
+
+#ifdef _WIN32
+    const auto broker_path = platf::hidmaestro::broker_client_t::default_executable_path();
+    std::error_code ec;
+    const bool broker_available = std::filesystem::is_regular_file(broker_path, ec);
+    std::string broker_version;
+    if (broker_available) {
+      platf::getFileVersionInfo(broker_path, broker_version);
+    }
+
+    // The HIDMaestro SDK records the installed driver package under HKLM\SOFTWARE\HIDMaestro
+    bool installed = false;
+    registry_key_t key;
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\HIDMaestro", 0, KEY_READ, key.put()) == ERROR_SUCCESS) {
+      installed = read_registry_string_value(key.get(), L"InstalledManifestSha256").has_value();
+    }
+
+    auto output_tree = build_driver_status(installed, installed ? bundled_version : std::string {}, "");
+    output_tree["broker_available"] = broker_available;
+    output_tree["broker_version"] = broker_version;
+    const auto reason = platf::hidmaestro::hidmaestro_t::platform_unsupported_reason();
+    output_tree["supported"] = reason.empty();
+    output_tree["reason"] = reason;
+#else
+    auto output_tree = build_driver_status(false, "", "");
+    output_tree["broker_available"] = false;
+    output_tree["broker_version"] = "";
+    output_tree["supported"] = false;
+    output_tree["reason"] = "gamepads.hidmaestro-unsupported-platform";
+    output_tree["error"] = "HIDMaestro is only available on Windows";
+#endif
+    output_tree["bundled_version"] = bundled_version;
+
+    return output_tree;
+  }
+
   /**
    * @brief Get virtual input driver version and installation status.
    * @param response The HTTP response object.
@@ -2045,6 +2088,7 @@ namespace confighttp {
     nlohmann::json output_tree;
     output_tree["virtualhid"] = get_virtualhid_driver_status();
     output_tree["vigembus"] = get_vigembus_driver_status();
+    output_tree["hidmaestro"] = get_hidmaestro_driver_status();
     send_response(response, output_tree);
   }
 

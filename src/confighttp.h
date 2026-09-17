@@ -173,6 +173,17 @@ namespace confighttp {
    */
   nlohmann::json get_vigembus_driver_status();
 
+  /**
+   * @brief Build HIDMaestro driver, broker and platform-support status.
+   *
+   * `installed` reflects the HIDMaestro driver package marker, `broker_available` whether
+   * the bundled broker executable exists, and `supported`/`reason` whether this process can
+   * use the backend at all (64-bit build, SYSTEM or administrator rights).
+   *
+   * @return HIDMaestro status JSON.
+   */
+  nlohmann::json get_hidmaestro_driver_status();
+
   void getVirtualInputStatus(const resp_https_t &response, const req_https_t &request);
 
   void getVirtualInputLicense(const resp_https_t &response, const req_https_t &request);

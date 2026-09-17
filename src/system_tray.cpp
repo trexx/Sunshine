@@ -200,7 +200,8 @@ namespace system_tray {
   #ifdef _WIN32
   void tray_virtualhid_license_cb([[maybe_unused]] struct tray_menu *item) {
     BOOST_LOG(info) << "Opening Virtual HID Driver license settings from system tray"sv;
-    launch_ui(config::input.gamepad_driver == config::GAMEPAD_DRIVER_VIGEMBUS ? "/config#gamepad_driver" : "/troubleshooting#virtualhid-license");
+    const bool virtualhid_bypassed = config::input.gamepad_driver == config::GAMEPAD_DRIVER_VIGEMBUS || config::input.gamepad_driver == config::GAMEPAD_DRIVER_HIDMAESTRO;
+    launch_ui(virtualhid_bypassed ? "/config#gamepad_driver" : "/troubleshooting#virtualhid-license");
   }
 
   void tray_virtualhid_download_cb([[maybe_unused]] struct tray_menu *item) {
@@ -489,10 +490,10 @@ namespace system_tray {
       tray.notification_cb = []() {
         launch_ui("/config#gamepad_driver");
       };
-    } else if (config::input.gamepad_driver != config::GAMEPAD_DRIVER_VIGEMBUS && notify_if_unlicensed && !license.licensed()) {
+    } else if (config::input.gamepad_driver != config::GAMEPAD_DRIVER_VIGEMBUS && config::input.gamepad_driver != config::GAMEPAD_DRIVER_HIDMAESTRO && notify_if_unlicensed && !license.licensed()) {
       tray.notification_title = "Virtual HID Driver License";
       tray.notification_text =
-        "Get or manage a license, or use the limited, end-of-life ViGEmBus driver.";
+        "Get or manage a license, or use the free HIDMaestro driver or the limited, end-of-life ViGEmBus driver.";
       tray.notification_icon = tray.allIconPaths[4];
       tray.notification_cb = []() {
         launch_ui("/troubleshooting#virtualhid-license");
@@ -515,7 +516,7 @@ namespace system_tray {
     const bool version_compatible,
     const std::string_view supported_versions
   ) {
-    if (config::input.gamepad_driver.empty() || config::input.gamepad_driver == config::GAMEPAD_DRIVER_VIGEMBUS || !installed || version_compatible) {
+    if (config::input.gamepad_driver.empty() || config::input.gamepad_driver == config::GAMEPAD_DRIVER_VIGEMBUS || config::input.gamepad_driver == config::GAMEPAD_DRIVER_HIDMAESTRO || !installed || version_compatible) {
       return;
     }
 

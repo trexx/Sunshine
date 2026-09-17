@@ -133,7 +133,8 @@ namespace platf::virtualhid {
    * @brief Decide whether ViGEmBus should be tried for a gamepad allocation.
    *
    * When Virtual HID Driver is unavailable or deliberately bypassed, ViGEmBus
-   * uses automatic selection for profiles it cannot represent directly.
+   * uses automatic selection for profiles it cannot represent directly. The
+   * fallback is never used when the policy pins Virtual HID Driver or HIDMaestro.
    *
    * @param configured_gamepad Configured virtual gamepad profile.
    * @param virtualhid_selected Whether Virtual HID Driver was selected for the allocation.

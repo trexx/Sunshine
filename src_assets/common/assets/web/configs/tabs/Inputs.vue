@@ -127,6 +127,7 @@ watch(
         <option value="all">{{ $t('config.gamepad_driver_all') }}</option>
         <option value="virtualhid">{{ $t('config.gamepad_driver_virtualhid') }}</option>
         <option value="vigembus">{{ $t('config.gamepad_driver_vigembus') }}</option>
+        <option value="hidmaestro">{{ $t('config.gamepad_driver_hidmaestro') }}</option>
       </select>
       <div class="form-text">{{ $t('config.gamepad_driver_desc') }}</div>
     </div>

@@ -33,3 +33,6 @@ else()
         INTERFACE_INCLUDE_DIRECTORIES "${minhook-detours_SOURCE_DIR}/src"
     )
 endif()
+
+# HIDMaestro virtual gamepad SDK (prebuilt .NET assembly consumed by tools/hidmaestro-broker)
+include(dependencies/hidmaestro)

@@ -72,7 +72,10 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/third-party/libvirtualhid")
 list(APPEND SUNSHINE_EXTERNAL_LIBRARIES libvirtualhid::libvirtualhid)
 list(APPEND PLATFORM_TARGET_FILES
         "${CMAKE_SOURCE_DIR}/src/platform/virtualhid_input.h"
-        "${CMAKE_SOURCE_DIR}/src/platform/virtualhid_input.cpp")
+        "${CMAKE_SOURCE_DIR}/src/platform/virtualhid_input.cpp"
+        "${CMAKE_SOURCE_DIR}/src/platform/hidmaestro/protocol.h"
+        "${CMAKE_SOURCE_DIR}/src/platform/hidmaestro/report.h"
+        "${CMAKE_SOURCE_DIR}/src/platform/hidmaestro/report.cpp")
 
 # build libevdev before the libvirtualhid target when using the ExternalProject fallback
 if(EXTERNAL_PROJECT_LIBEVDEV_USED AND TARGET libvirtualhid)

@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Sunshine HIDMaestro broker.
+
+    Hosts the HIDMaestro SDK (HIDMaestro.Core.dll) for controller lifecycle only:
+    driver install, controller create/dispose, packing-plan export. Sunshine itself
+    writes input frames straight into the driver's shared memory, so this process is
+    idle during play. See src/platform/hidmaestro/protocol.h for the pipe protocol.
+
+    Built by CMake (tools/CMakeLists.txt) via `dotnet publish`; the prebuilt SDK DLL is
+    downloaded and hash-verified by cmake/dependencies/hidmaestro.cmake and passed in as
+    HidMaestroCoreDll.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>sunshine-hidmaestro-broker</AssemblyName>
+    <RootNamespace>Sunshine.HidMaestroBroker</RootNamespace>
+    <Description>Sunshine HIDMaestro lifecycle broker</Description>
+    <Company>LizardByte</Company>
+    <Product>Sunshine</Product>
+
+    <!-- Single self-contained executable; HIDMaestro.Core relies on reflection and
+         embedded resources, so trimming is disabled. -->
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <UseAppHost>true</UseAppHost>
+    <TieredPGO>true</TieredPGO>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Path to the prebuilt HIDMaestro.Core.dll; CMake overrides this. -->
+    <HidMaestroCoreDll Condition="'$(HidMaestroCoreDll)' == ''">$(MSBuildThisFileDirectory)HIDMaestro.Core.dll</HidMaestroCoreDll>
+    <Version Condition="'$(Version)' == ''">0.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="HIDMaestro.Core">
+      <HintPath>$(HidMaestroCoreDll)</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="CheckHidMaestroCoreDll" BeforeTargets="BeforeBuild">
+    <Error Condition="!Exists('$(HidMaestroCoreDll)')"
+           Text="HIDMaestro.Core.dll not found at '$(HidMaestroCoreDll)'. Configure with -DSUNSHINE_ENABLE_HIDMAESTRO=ON so CMake downloads it, or pass -p:HidMaestroCoreDll=&lt;path&gt;." />
+  </Target>
+
+</Project>

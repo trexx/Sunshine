@@ -324,6 +324,10 @@ supported on the current platform.
             it automatically sets this option to `all` when it is missing.
             @warning{ViGEmBus has limited gamepad features, supports only Xbox 360 and DualShock 4 emulation, and has
             reached end of life. Selecting `vigembus` also suppresses Virtual HID Driver startup notifications.}
+            @note{HIDMaestro is a free, user-mode virtual controller driver bundled with 64-bit Windows builds of
+            Sunshine. It installs itself the first time a controller connects and requires Sunshine to run as the
+            Sunshine service or with administrator rights. Sunshine drives it through the bundled
+            `tools\sunshine-hidmaestro-broker.exe` helper.}
             @note{This option applies only to Windows.}
         </td>
     </tr>
@@ -340,13 +344,18 @@ supported on the current platform.
             @endcode</td>
     </tr>
     <tr>
-        <td rowspan="3">Choices</td>
+        <td rowspan="4">Choices</td>
         <td>all</td>
-        <td>Prefer Virtual HID Driver when it is available and licensed, with ViGEmBus as a limited fallback.</td>
+        <td>Prefer Virtual HID Driver when it is available and licensed, then HIDMaestro, with ViGEmBus as a limited
+            final fallback.</td>
     </tr>
     <tr>
         <td>virtualhid</td>
-        <td>Use only Virtual HID Driver. An active paid license is required; ViGEmBus fallback is disabled.</td>
+        <td>Use only Virtual HID Driver. An active paid license is required; HIDMaestro and ViGEmBus fallbacks are disabled.</td>
+    </tr>
+    <tr>
+        <td>hidmaestro</td>
+        <td>Use only HIDMaestro for gamepads. Supports every gamepad type; ViGEmBus fallback is disabled.</td>
     </tr>
     <tr>
         <td>vigembus</td>

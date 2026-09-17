@@ -172,6 +172,7 @@
         virtualhid: null,
         virtualhidLicense: null,
         vigembus: null,
+        hidmaestro: null,
       }
     },
     async created() {
@@ -194,6 +195,7 @@
             const virtualInputStatus = await fetch("./api/virtual-input/status").then((r) => r.json());
             this.virtualhid = virtualInputStatus.virtualhid;
             this.vigembus = virtualInputStatus.vigembus;
+            this.hidmaestro = virtualInputStatus.hidmaestro || null;
           } catch (e) {
             console.error("Failed to fetch virtual input driver status:", e);
           }
@@ -225,6 +227,8 @@
         }
 
         const vigembusUsable = this.vigembus.installed && this.vigembus.version_compatible;
+        const hidmaestroUsable = !!(this.hidmaestro && this.hidmaestro.supported && this.hidmaestro.broker_available);
+        const fallbackUsable = vigembusUsable || hidmaestroUsable;
 
         if (!this.gamepadDriver) {
           return this.buildVirtualInputNotice(false, 'index.gamepad_driver_choice_title', [{
@@ -240,12 +244,20 @@
           return this.buildVigembusNotice(vigembusUsable);
         }
 
+        if (this.gamepadDriver === 'hidmaestro') {
+          return this.buildHidmaestroNotice(hidmaestroUsable);
+        }
+
         if (this.virtualhid.installed) {
-          return this.buildInstalledVirtualhidNotice(vigembusUsable);
+          return this.buildInstalledVirtualhidNotice(fallbackUsable);
         }
 
         if (this.gamepadDriver === 'virtualhid') {
           return this.buildVirtualInputNotice(true, 'index.virtualhid_required_title', [{ key: 'index.virtualhid_required_desc' }]);
+        }
+
+        if (this.controllerEnabled && hidmaestroUsable) {
+          return null;
         }
 
         if (this.controllerEnabled && !vigembusUsable) {
@@ -328,6 +340,25 @@
           key: this.vigembus.installed ? 'index.vigembus_outdated_desc' : 'index.vigembus_not_installed_desc',
           params: { version: this.vigembus.version, supported_versions: this.vigembus.supported_versions },
         }]);
+      },
+      /**
+       * Build the notice for an explicitly selected HIDMaestro backend.
+       *
+       * @param {boolean} hidmaestroUsable Whether the broker is present and this process may use it.
+       * @returns {object|null} Warning data, or no notice when HIDMaestro is usable.
+       */
+      buildHidmaestroNotice(hidmaestroUsable) {
+        if (!this.controllerEnabled || hidmaestroUsable) {
+          return null;
+        }
+        const reason = (this.hidmaestro && this.hidmaestro.reason) || '';
+        let key = 'index.hidmaestro_not_installed_desc';
+        if (reason === 'gamepads.hidmaestro-requires-elevation') {
+          key = 'index.hidmaestro_requires_elevation_desc';
+        } else if (reason === 'gamepads.hidmaestro-unsupported-arch' || reason === 'gamepads.hidmaestro-unsupported-platform') {
+          key = 'index.hidmaestro_unsupported_desc';
+        }
+        return this.buildVirtualInputNotice(true, 'index.hidmaestro_required_title', [{ key }]);
       },
       /**
        * Build the notice for an installed Virtual HID Driver.

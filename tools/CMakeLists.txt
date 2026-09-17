@@ -47,3 +47,35 @@ target_link_libraries(sunshinesvc
         wtsapi32
         ${PLATFORM_LIBRARIES})
 target_compile_options(sunshinesvc PRIVATE ${SUNSHINE_COMPILE_OPTIONS})
+
+# HIDMaestro broker: a .NET helper that hosts the HIDMaestro SDK for controller lifecycle.
+# Built with `dotnet publish` as a self-contained single-file executable; see
+# tools/hidmaestro-broker/SunshineHidMaestroBroker.csproj and cmake/dependencies/hidmaestro.cmake.
+if(SUNSHINE_ENABLE_HIDMAESTRO)
+    set(HIDMAESTRO_BROKER_PROJECT "${CMAKE_CURRENT_SOURCE_DIR}/hidmaestro-broker/SunshineHidMaestroBroker.csproj")
+    set(HIDMAESTRO_BROKER_PUBLISH_DIR "${CMAKE_BINARY_DIR}/hidmaestro/publish")
+    set(HIDMAESTRO_BROKER_EXE "${HIDMAESTRO_BROKER_PUBLISH_DIR}/sunshine-hidmaestro-broker.exe")
+    file(GLOB HIDMAESTRO_BROKER_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/hidmaestro-broker/*.cs")
+
+    add_custom_command(
+            OUTPUT "${HIDMAESTRO_BROKER_EXE}"
+            COMMAND "${DOTNET_EXECUTABLE}" publish "${HIDMAESTRO_BROKER_PROJECT}"
+                    --configuration Release
+                    --nologo
+                    --output "${HIDMAESTRO_BROKER_PUBLISH_DIR}"
+                    "-p:HidMaestroCoreDll=${HIDMAESTRO_CORE_DLL}"
+                    "-p:Version=${CMAKE_PROJECT_VERSION}"
+                    "-p:BaseIntermediateOutputPath=${CMAKE_BINARY_DIR}/hidmaestro/obj/"
+                    "-p:BaseOutputPath=${CMAKE_BINARY_DIR}/hidmaestro/bin/"
+            DEPENDS "${HIDMAESTRO_BROKER_PROJECT}" ${HIDMAESTRO_BROKER_SOURCES} "${HIDMAESTRO_CORE_DLL}"
+            COMMENT "Publishing HIDMaestro broker"
+            VERBATIM)
+    add_custom_target(hidmaestro_broker ALL DEPENDS "${HIDMAESTRO_BROKER_EXE}")
+    set(HIDMAESTRO_BROKER_EXE "${HIDMAESTRO_BROKER_EXE}" CACHE INTERNAL "Path to the published HIDMaestro broker executable")
+
+    # Keep the build-tree layout identical to the install layout so Sunshine finds the broker next to itself.
+    add_custom_command(TARGET hidmaestro_broker POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_BINARY_DIR}/tools"
+            COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${HIDMAESTRO_BROKER_EXE}" "${CMAKE_BINARY_DIR}/tools/sunshine-hidmaestro-broker.exe"
+            VERBATIM)
+endif()
