@@ -60,3 +60,7 @@ junit.xml
 *.pyc
 .venv/
 venv/
+
+# HIDMaestro broker local dotnet builds
+tools/hidmaestro-broker/bin/
+tools/hidmaestro-broker/obj/

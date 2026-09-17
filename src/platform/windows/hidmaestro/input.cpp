@@ -302,13 +302,13 @@ namespace platf::hidmaestro {
     if (driver_ready) {
       return true;
     }
-    std::string error;
-    const auto status = broker->ensure_driver(error);
+    std::string error_text;
+    const auto status = broker->ensure_driver(error_text);
     if (status == proto::status_e::ok) {
       driver_ready = true;
       return true;
     }
-    BOOST_LOG(error) << "HIDMaestro driver is not available ("sv << status_name(status) << "): "sv << error;
+    BOOST_LOG(error) << "HIDMaestro driver is not available ("sv << status_name(status) << "): "sv << error_text;
     return false;
   }
 
@@ -319,15 +319,15 @@ namespace platf::hidmaestro {
     }
 
     const std::string identity = "sunshine-slot" + std::to_string(nr);
-    std::string error;
-    auto status = broker->create_controller(static_cast<std::uint32_t>(nr), slot.mapping->profile_id, identity, slot.plan, error);
+    std::string error_text;
+    auto status = broker->create_controller(static_cast<std::uint32_t>(nr), slot.mapping->profile_id, identity, slot.plan, error_text);
     if (status == proto::status_e::index_in_use) {
       // A previous Sunshine instance left this slot behind in the broker; reclaim it
       broker->destroy_controller(static_cast<std::uint32_t>(nr));
-      status = broker->create_controller(static_cast<std::uint32_t>(nr), slot.mapping->profile_id, identity, slot.plan, error);
+      status = broker->create_controller(static_cast<std::uint32_t>(nr), slot.mapping->profile_id, identity, slot.plan, error_text);
     }
     if (status != proto::status_e::ok) {
-      BOOST_LOG(error) << "Couldn't create HIDMaestro controller "sv << nr << " ("sv << slot.mapping->profile_id << "): "sv << status_name(status) << (error.empty() ? ""sv : ": "sv) << error;
+      BOOST_LOG(error) << "Couldn't create HIDMaestro controller "sv << nr << " ("sv << slot.mapping->profile_id << "): "sv << status_name(status) << (error_text.empty() ? ""sv : ": "sv) << error_text;
       return false;
     }
 

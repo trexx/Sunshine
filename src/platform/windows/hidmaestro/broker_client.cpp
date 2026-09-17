@@ -301,17 +301,17 @@ namespace platf::hidmaestro {
       }
       pipe.release();  // INVALID_HANDLE_VALUE must not be closed
 
-      const DWORD error = GetLastError();
-      if (error == ERROR_PIPE_BUSY) {
+      const DWORD last_error = GetLastError();
+      if (last_error == ERROR_PIPE_BUSY) {
         WaitNamedPipeW(path.c_str(), 50);
-      } else if (error == ERROR_FILE_NOT_FOUND) {
+      } else if (last_error == ERROR_FILE_NOT_FOUND) {
         if (!process || WaitForSingleObject(process.get(), 0) != WAIT_TIMEOUT) {
           BOOST_LOG(warning) << "HIDMaestro broker exited before its pipe appeared"sv;
           return {};
         }
         Sleep(25);
       } else {
-        BOOST_LOG(error) << "Couldn't open HIDMaestro broker pipe ["sv << util::hex(error).to_string_view() << ']';
+        BOOST_LOG(error) << "Couldn't open HIDMaestro broker pipe ["sv << util::hex(last_error).to_string_view() << ']';
         return {};
       }
 
@@ -337,9 +337,9 @@ namespace platf::hidmaestro {
 
     DWORD bytes = 0;
     if (!TransactNamedPipe(pipe.get(), const_cast<void *>(request), static_cast<DWORD>(request_size), response, static_cast<DWORD>(response_size), &bytes, &overlapped)) {
-      const DWORD error = GetLastError();
-      if (error != ERROR_IO_PENDING) {
-        BOOST_LOG(warning) << "HIDMaestro broker transaction failed ["sv << util::hex(error).to_string_view() << ']';
+      const DWORD last_error = GetLastError();
+      if (last_error != ERROR_IO_PENDING) {
+        BOOST_LOG(warning) << "HIDMaestro broker transaction failed ["sv << util::hex(last_error).to_string_view() << ']';
         return false;
       }
       if (WaitForSingleObject(event.get(), static_cast<DWORD>(timeout.count())) != WAIT_OBJECT_0) {
