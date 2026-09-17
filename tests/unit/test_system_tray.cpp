@@ -481,7 +481,7 @@ TEST_P(UnlicensedVirtualHidTrayTest, PreparesMenuAndStartupNotification) {
   EXPECT_STREQ(tray_data.notification_title, "Virtual HID Driver License");
   EXPECT_STREQ(
     tray_data.notification_text,
-    "Get or manage a license, or use the limited, end-of-life ViGEmBus driver."
+    "Get or manage a license, or use the free HIDMaestro driver or the limited, end-of-life ViGEmBus driver."
   );
   EXPECT_STREQ(tray_data.notification_icon, tray_data.allIconPaths[4]);
   EXPECT_NE(tray_data.notification_cb, nullptr);
