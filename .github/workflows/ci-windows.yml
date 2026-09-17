@@ -62,6 +62,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # `name` is a real matrix key so `exclude` can drop the ARM64 entry; `include` extends
+        # each name with its runner and toolchain.
+        name:
+          - Windows-AMD64
+          - Windows-ARM64
         include:
           - name: Windows-AMD64
             os: windows-2022
